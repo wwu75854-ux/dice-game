@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摇骰子 - 双人对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .players-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .player-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            min-width: 280px;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .player-box.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #FFD700;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .player-name {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-score {
+            color: #FFD700;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .dice-container {
+            perspective: 600px;
+            margin-bottom: 15px;
+        }
+
+        .dice {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+
+        .dice.rolling {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg) scale(1.1); }
+            50% { transform: rotate(15deg) scale(1.1); }
+            75% { transform: rotate(-10deg) scale(1.1); }
+        }
+
+        .dice-face {
+            font-size: 50px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .roll-btn {
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .roll-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .roll-btn:active {
+            transform: translateY(0);
+        }
+
+        .roll-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .turn-indicator {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .reset-btn {
+            padding: 10px 30px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .reset-btn:hover {
+            background: white;
+            color: #764ba2;
+        }
+
+        .round-result {
+            color: #FFD700;
+            font-size: 1.5rem;
+            margin: 15px 0;
+            min-height: 40px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>摇骰子 - 双人对战</h1>
+        
+        <div class="turn-indicator" id="turnIndicator">玩家 1 的回合</div>
+
+        <div class="players-container">
+            <div class="player-box active" id="player1Box">
+                <div class="player-name">玩家 1</div>
+                <div class="player-score" id="score1">0</div>
+                <div class="dice-container">
+                    <div class="dice" id="dice1">
+                        <span class="dice-face" id="diceFace1">?</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-box" id="player2Box">
+                <div class="player-name">玩家 2</div>
+                <div class="player-score" id="score2">0</div>
+                <div class="dice-container">
+                    <div class="dice" id="dice2">
+                        <span class="dice-face" id="diceFace2">?</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="round-result" id="roundResult"></div>
+
+        <button class="roll-btn" id="rollBtn">摇一摇</button>
+
+        <div class="controls">
+            <button class="reset-btn" id="resetBtn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const dice1 = document.getElementById('dice1');
+        const dice2 = document.getElementById('dice2');
+        const diceFace1 = document.getElementById('diceFace1');
+        const diceFace2 = document.getElementById('diceFace2');
+        const rollBtn = document.getElementById('rollBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const score1El = document.getElementById('score1');
+        const score2El = document.getElementById('score2');
+        const player1Box = document.getElementById('player1Box');
+        const player2Box = document.getElementById('player2Box');
+        const turnIndicator = document.getElementById('turnIndicator');
+        const roundResult = document.getElementById('roundResult');
+
+        const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        
+        let currentPlayer = 1;
+        let score1 = 0;
+        let score2 = 0;
+        let isRolling = false;
+        let player1Result = null;
+        let player2Result = null;
+
+        function rollDice() {
+            if (isRolling) return;
+            
+            isRolling = true;
+            rollBtn.disabled = true;
+            roundResult.textContent = '';
+            
+            const currentDice = currentPlayer === 1 ? dice1 : dice2;
+            const currentDiceFace = currentPlayer === 1 ? diceFace1 : diceFace2;
+            
+            currentDice.classList.add('rolling');
+            
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                const randomFace = Math.floor(Math.random() * 6);
+                currentDiceFace.textContent = diceEmojis[randomFace];
+                rollCount++;
+                
+                if (rollCount >= 10) {
+                    clearInterval(rollInterval);
+                    
+                    const finalResult = Math.floor(Math.random() * 6);
+                    currentDiceFace.textContent = diceEmojis[finalResult];
+                    const result = finalResult + 1;
+                    
+                    if (currentPlayer === 1) {
+                        player1Result = result;
+                        score1 += result;
+                        score1El.textContent = score1;
+                    } else {
+                        player2Result = result;
+                        score2 += result;
+                        score2El.textContent = score2;
+                    }
+                    
+                    setTimeout(() => {
+                        currentDice.classList.remove('rolling');
+                        
+                        if (currentPlayer === 1) {
+                            currentPlayer = 2;
+                            player1Box.classList.remove('active');
+                            player2Box.classList.add('active');
+                            turnIndicator.textContent = '玩家 2 的回合';
+                        } else {
+                            currentPlayer = 1;
+                            player2Box.classList.remove('active');
+                            player1Box.classList.add('active');
+                            turnIndicator.textContent = '玩家 1 的回合';
+                            
+                            if (player1Result !== null && player2Result !== null) {
+                                if (player1Result > player2Result) {
+                                    roundResult.textContent = `本回合：玩家 1 获胜！(${player1Result} vs ${player2Result})`;
+                                } else if (player2Result > player1Result) {
+                                    roundResult.textContent = `本回合：玩家 2 获胜！(${player2Result} vs ${player1Result})`;
+                                } else {
+                                    roundResult.textContent = `本回合：平局！(${player1Result} vs ${player2Result})`;
+                                }
+                                player1Result = null;
+                                player2Result = null;
+                            }
+                        }
+                        
+                        isRolling = false;
+                        rollBtn.disabled = false;
+                    }, 300);
+                }
+            }, 50);
+        }
+
+        function resetGame() {
+            score1 = 0;
+            score2 = 0;
+            currentPlayer = 1;
+            player1Result = null;
+            player2Result = null;
+            
+            score1El.textContent = '0';
+            score2El.textContent = '0';
+            diceFace1.textContent = '?';
+            diceFace2.textContent = '?';
+            roundResult.textContent = '';
+            
+            player1Box.classList.add('active');
+            player2Box.classList.remove('active');
+            turnIndicator.textContent = '玩家 1 的回合';
+        }
+
+        rollBtn.addEventListener('click', rollDice);
+        resetBtn.addEventListener('click', resetGame);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isRolling) {
+                e.preventDefault();
+                rollDice();
+            }
+        });
+    </script>
+</body>
+</html>
